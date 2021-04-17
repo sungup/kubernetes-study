@@ -1,0 +1,41 @@
+# 01. prometheus role binding
+#
+# to build-up prometheus / grafana / loki echo system build-up the basic role and role-binding to access metric
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-role
+  namespace: monitoring
+rules:
+# For the k8s monitoring, prometheus should access following resources from basic api group
+- apiGroups: [""]
+  resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+# For the in-bound service access monitoring, ingress resource in extensions also should be monitored by prometheus
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+# To access other pods, following configuration
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-role-binding
+  namespace: monitoring
+
+# Role assignment target
+subjects:
+- apiGroup: ""
+  kind: ServiceAccount
+  name: default
+  namespace: monitoring
+
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-role
