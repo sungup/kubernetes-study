@@ -10,15 +10,15 @@ metadata:
 rules:
 # For the k8s monitoring, prometheus should access following resources from basic api group
 - apiGroups: [""]
-  resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
-  verbs: ["get", "list", "watch"]
+  resources: [nodes, nodes/proxy, services, endpoints, pods]
+  verbs: [get, list, watch]
 # For the in-bound service access monitoring, ingress resource in extensions also should be monitored by prometheus
-- apiGroups: ["extensions"]
-  resources: ["ingresses"]
-  verbs: ["get", "list", "watch"]
+- apiGroups: [extensions]
+  resources: [ingresses]
+  verbs: [get, list, watch]
 # To access other pods, following configuration
-- nonResourceURLs: ["/metrics"]
-  verbs: ["get"]
+- nonResourceURLs: [/metrics]
+  verbs: [get]
 
 ---
 
