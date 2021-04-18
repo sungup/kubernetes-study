@@ -28,7 +28,6 @@ metadata:
   name: prometheus-role-binding
   namespace: monitoring
 
-# Role assignment target
 subjects:
 - apiGroup: ""
   kind: ServiceAccount
