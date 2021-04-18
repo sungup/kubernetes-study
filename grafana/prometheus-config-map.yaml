@@ -148,3 +148,20 @@ data:
       - source_labels: [__meta_kubernetes_service_name]
         action: replace
         target_label: kubernetes_name
+        
+    - job_name: 'node_exporter'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [monitoring]
+        selectors:
+        - role: pod
+          label: "name=node-exporter"
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+        replacement: k8s_pod_${1}
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        regex: (.+)
+        target_label: instance
+        replacement: ${1}

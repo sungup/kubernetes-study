@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter                 # DaemonSet Resource의 이름
+  namespace: monitoring               # DaemonSEt 적용 namespace
+  labels:
+    k8s-app: node-exporter            # node-exporter-daemonset을 위한 label
+spec:
+  selector:
+    matchLabels:
+      name: node-exporter             # node-exporter pod들을 제어용 label
+  template:
+    metadata:
+      labels:
+        name: node-exporter           # node-exporter pod들을 제어용 label
+    spec:
+      containers:
+      - name: node-exporter           # node-exporter container에 대한 설정
+        image: prom/node-exporter     # prometheus default image
+        ports:
+        - containerPort: 9100         # prometheus ports
+        securityContext:
+          privileged: true            # system 관련 context 확보를 위해 privileged 모드 활성화.

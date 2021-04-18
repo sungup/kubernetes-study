@@ -7,9 +7,9 @@ metadata:
     prometheus.io/scrape: 'true'
     prometheus.io/port:   '9090'
 spec:
+  type: LoadBalancer
   selector:
     app: prometheus-server
-  type: LoadBalancer
   ports:
   - port: 9090
     targetPort: 9090
