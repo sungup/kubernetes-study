@@ -99,10 +99,6 @@ data:
         action: replace
         target_label: kubernetes_pod_name
 
-    - job_name: 'kube-state-metrics'
-      static_configs:
-      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
-
     - job_name: 'kubernetes-cadvisor'
       kubernetes_sd_configs:
       - role: node
@@ -148,7 +144,11 @@ data:
       - source_labels: [__meta_kubernetes_service_name]
         action: replace
         target_label: kubernetes_name
-        
+
+    - job_name: 'kube-state-metrics'
+      static_configs:
+      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
+
     - job_name: 'node_exporter'
       kubernetes_sd_configs:
       - role: pod
