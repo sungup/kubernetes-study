@@ -6,7 +6,7 @@ metadata:
 provisioner: ceph.com/rbd
 parameters:
   # Ceph MON address & pool name
-  monitor: 10.0.1.21:6789
+  monitors: 10.0.1.21:6789
   pool: k8s
 
   # Ceph admin account information
@@ -19,9 +19,13 @@ parameters:
   userSecretNamespace: kube-system
   userSecretName: ceph-user-secret
 
+  fsType: ext4
+
   # Following options should be check the rbd man page
   # http://manpages.ubuntu.com/manpages/xenial/man8/rbd.8.html
   # Image format 2 (1 had been deprecated)
   imageFormat: "2"
   # Image feature
-  imageFeature: layering
+  imageFeatures: "layering"
+
+allowVolumeExpansion: true
