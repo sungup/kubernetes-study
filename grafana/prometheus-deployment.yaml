@@ -26,15 +26,20 @@ spec:
             cpu: "1"
         ports:
         - containerPort: 9090
+        securityContext:
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
         volumeMounts:
         - name: prometheus-config-volume
           mountPath: /etc/prometheus
         - name: prometheus-storage-volume
-          mountPath: /prometheus/
+          mountPath: /prometheus
       volumes:
       - name: prometheus-config-volume
         configMap:
           defaultMode: 420
           name: prometheus-server-config
       - name: prometheus-storage-volume
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: prometheus-pvc
