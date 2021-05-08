@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prometheus-deployment
+  name: prometheus
   namespace: monitoring
 spec:
   replicas: 1
@@ -25,7 +25,8 @@ spec:
             memory: "1Gi"
             cpu: "1"
         ports:
-        - containerPort: 9090
+        - name: prometheus-http
+          containerPort: 9090
         securityContext:
           runAsGroup: 0
           runAsNonRoot: false
@@ -40,6 +41,10 @@ spec:
         configMap:
           defaultMode: 420
           name: prometheus-server-config
+      # with Empty Directory for temporary uses
       - name: prometheus-storage-volume
-        persistentVolumeClaim:
-          claimName: prometheus-pvc
+        emptyDir: {}
+      # with Persistent Volume
+      #- name: prometheus-storage-volume
+      #  persistentVolumeClaim:
+      #    claimName: prometheus-pvc

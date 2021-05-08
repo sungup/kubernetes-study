@@ -12,4 +12,4 @@ spec:
     app: prometheus-server
   ports:
   - port: 9090
-    targetPort: 9090
+    targetPort: prometheus-http
