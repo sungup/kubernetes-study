@@ -70,7 +70,7 @@ data:
         namespaces:
           names: [default]
         selectors:
-        - role: service
+        - role: endpoints
           field: "metadata.name=kubernetes"
       scheme: https
       tls_config:
