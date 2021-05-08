@@ -1,3 +1,0 @@
-[submodule "ceph-csi"]
-	path = ceph-csi
-	url = https://github.com/ceph/ceph-csi.git
