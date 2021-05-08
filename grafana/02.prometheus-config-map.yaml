@@ -6,6 +6,16 @@ metadata:
     name: prometheus-server-config
   namespace: monitoring
 data:
+  file_discovery.yml: |-
+    - targets:
+      - mon.sungup.io:9100
+      - osd-node01.sungup.io:9100
+      - osd-node02.sungup.io:9100
+      - osd-node03.sungup.io:9100
+      labels:
+        job: node-exporter
+        system: ceph
+
   prometehus.rules: |-
     groups:
     - name: container memory alert
@@ -174,3 +184,9 @@ data:
         replacement: pod_${1}
       - action: labeldrop
         regex: pod_(controller_revision_hash|pod_template_generation)
+
+    - job_name: 'external_nodes'
+      file_sd_configs:
+      - files:
+        - file_discovery.yml
+        refresh_interval: 1m
