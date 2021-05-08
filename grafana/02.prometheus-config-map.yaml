@@ -67,14 +67,15 @@ data:
     - job_name: 'kuberntes-apiservers'
       kubernetes_sd_configs:
       - role: endpoints
+        namespaces:
+          names: [default]
+        selectors:
+        - role: service
+          field: "metadata.name=kubernetes"
       scheme: https
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-      relabel_configs:
-      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
-        action: keep
-        regex: default;kubernetes;https
 
     - job_name: 'kubernetes-nodes'
       kubernetes_sd_configs:
@@ -164,12 +165,12 @@ data:
         - role: pod
           label: "name=node-exporter"
       relabel_configs:
-      - action: labelmap
-        regex: __meta_kubernetes_pod_label_(.+)
-        replacement: pod_${1}
       - source_labels: [__meta_kubernetes_pod_node_name]
         regex: (.+)
         target_label: instance
         replacement: ${1}
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+        replacement: pod_${1}
       - action: labeldrop
         regex: pod_(controller_revision_hash|pod_template_generation)
