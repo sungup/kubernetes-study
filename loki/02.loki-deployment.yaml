@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki-server
+  template:
+    metadata:
+      labels:
+        app: loki-server
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/loki:2.2.1
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        args:
+        - "--config.file=/etc/loki/loki.yaml"
+        ports:
+        - name: loki-http
+          containerPort: 3100
+        volumeMounts:
+        - mountPath: /etc/loki
+          name: loki-config-volume
+        - mountPath: /loki
+          name: loki-data-volume
+      volumes:
+      - name: loki-config-volume
+        configMap:
+          defaultMode: 420
+          name: loki-server-config
+      - name: loki-data-volume
+        emptyDir: {}
+      
