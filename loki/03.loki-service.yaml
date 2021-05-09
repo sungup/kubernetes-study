@@ -3,9 +3,6 @@ kind: Service
 metadata:
   name: loki
   namespace: monitoring
-  annotations:
-    prometheus.io/scrape: 'true'
-    prometheus.io/port: '3100'
 spec:
   type: LoadBalancer
   selector:

@@ -12,6 +12,9 @@ spec:
     metadata:
       labels:
         app: loki-server
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port:   '3100'
     spec:
       containers:
       - name: grafana
