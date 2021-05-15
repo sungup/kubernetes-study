@@ -11,6 +11,7 @@ data:
 
     server:
       http_listen_port: 3100
+      log_level: warn
 
     ingester:
       chunk_idle_period: 3m

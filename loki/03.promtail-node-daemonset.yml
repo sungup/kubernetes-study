@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-node-config
+  labels:
+    name: promtail-node-config
+  namespace: monitoring
+data:
+  promtail.yaml: |-
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 9095
+
+    positions:
+      filename: /var/log/promtail/positions.yaml
+
+    client:
+      url: http://loki:3100/loki/api/v1/push
+
+    scrape_configs:
+    - job_name: journal
+      journal:
+        json: false
+        # 12시간을 넘는 log는 전송하지 않음
+        max_age: 12h
+        path: /var/log/journal
+        labels:
+          job: default/systemd-journal
+
+      relabel_configs:
+      # 기본 Relabeling
+      - source_labels: ['__meta_kubernetes_pod_node_name']
+        target_label: __host__
+      - source_labels: ['__journal__systemd_unit']
+        target_label: systemd_unit
+      - source_labels: ['__journal__hostname']
+        target_label: hostname
+      - source_labels: ['__journal_syslog_identifier']
+        target_label: syslog_identifier
+
+      # Promtail 은 모든 로그 항목을 수집하기 때문에, 일부 debug성 로그들도 취합될 수
+      # 있으며, 분석을 위한 추가적인 Labeling이 필요할 수 있습니다. 이러한 작업을 위해
+      # relabel_configs에 추가적인 labeling 작업을 추가합니다. 자세한 내용은 아래
+      # document 를 확인하여 추가해 주세요.
+      # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
+
+---
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: monitoring
+  labels:
+    k8s-app: promtail
+spec:
+  selector:
+    matchLabels:
+      name: promtail-node
+  template:
+    metadata:
+      labels:
+        name: promtail-node
+    spec:
+      containers:
+      - name: promtail
+        image: grafana/promtail:2.2.1
+        args:
+        - -config.file=/etc/promtail/promtail.yaml
+        ports:
+        - containerPort: 9080 # prometheus port
+        volumeMounts:
+        # Promtail에 대한 설정 Mount
+        - name: promtail-conf-vol
+          mountPath: /etc/promtail
+        # Journal 연결을 위한 최소 Mount 설정
+        - name: etc-machine-id
+          mountPath: /etc/machine-id
+        - name: var-log-journal
+          mountPath: /var/log/journal
+        - name: run-log-journal
+          mountPath: /run/log/journal
+        # pod 재시작 시 동일 log 재전송을 막기 위해 Position 파일을 host
+        # 로 이동
+        - name: var-log-promtail-position
+          mountPath: /var/log/promtail
+      volumes:
+      - name: promtail-conf-vol
+        configMap:
+          defaultMode: 420
+          name: promtail-node-config
+      # journal log 연결을 위한 host의 파일 정보들.
+      - name: etc-machine-id
+        hostPath:
+          path: /etc/machine-id
+          type: File
+      - name: var-log-journal
+        hostPath:
+          path: /var/log/journal
+          type: Directory
+      - name: run-log-journal
+        hostPath:
+          path: /run/log/journal
+          type: Directory
+      # pod 재시작 시 동일 log 재전송 방지를 위한 position 파일 정보
+      # 최초 pod 시작 시 해당 파일은 존재하지 않기 때문에 FileOrCreate
+      # 로 mount 합니다.
+      - name: var-log-promtail-position
+        hostPath:
+          path: /var/log/promtail
+          type: DirectoryOrCreate
