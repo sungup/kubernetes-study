@@ -132,6 +132,10 @@ data:
       - source_labels: [__meta_kubernetes_pod_name]
         action: replace
         target_label: kubernetes_pod_name
+      - source_labels: [__meta_kubernetes_pod_controller_kind,__meta_kubernets_pod_node_name]
+        regex: DaemonSet;(.+)
+        target_label: instance
+        replacement: ${1}
 
     - job_name: 'kubernetes-service-endpoints'
       kubernetes_sd_configs:
@@ -161,6 +165,10 @@ data:
       - source_labels: [__meta_kubernetes_service_name]
         action: replace
         target_label: kubernetes_name
+      - source_labels: [__meta_kubernetes_pod_controller_kind,__meta_kubernets_pod_node_name]
+        regex: DaemonSet;(.+)
+        target_label: instance
+        replacement: ${1}
 
     - job_name: 'kube-state-metrics'
       static_configs:
@@ -184,6 +192,10 @@ data:
         replacement: pod_${1}
       - action: labeldrop
         regex: pod_(controller_revision_hash|pod_template_generation)
+      - source_labels: [__meta_kubernetes_pod_controller_kind,__meta_kubernets_pod_node_name]
+        regex: DaemonSet;(.+)
+        target_label: instance
+        replacement: ${1}
 
     - job_name: 'external_nodes'
       file_sd_configs:

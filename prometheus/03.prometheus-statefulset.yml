@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port:   '9090'
+spec:
+  type: LoadBalancer
+  selector:
+    app: prometheus-server
+  ports:
+  - port: 9090
+    targetPort: prometheus-http
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus 
+  namespace: monitoring
+spec:
+  # 앞서 구성한 Service의 이름을 지정합니다. 본 예제는 prometheus의 직접 접속을 위해
+  # LoadBalancer를 구성하지만 권장은 ClusterType: None의 Headless 서비스를 구성해야
+  # 합니다.
+  serviceName: prometheus
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-server
+  template:
+    metadata:
+      labels:
+        app: prometheus-server
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.26.0
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--storage.tsdb.path=/prometheus/"
+        - "--web.enable-lifecycle"
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+        ports:
+        - name: prometheus-http
+          containerPort: 9090
+        # Volume 생성 직후는 해당 Block에 대해서는 파일 생성권한이 일반 사용자 계정 (즉,
+        # Pod 실행 계정)은 갖고 있지 않습니다. Root 계정 권한으로 PV내 파일을 생성할 수
+        # 있도록 실행 권한을 변경합니다.
+        securityContext:
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
+        # Volume Mount는 동일하게 구성합니다.
+        volumeMounts:
+        - name: prom-conf-vol
+          mountPath: /etc/prometheus
+        - name: prom-data-vol
+          mountPath: /prometheus
+      # Prometheus의 설정을 위한 Volume은 PVC가 아니기 때문에 이전과 동일하게 Volume
+      # 정보를 등록합니다. 단, DB 정보를 위한 PVC 설정은 활용하지 않습니다.
+      volumes:
+      - name: prom-conf-vol
+        configMap:
+          defaultMode: 420
+          name: prometheus-server-config
+  # POD 별 PVC를 생성하기 위한 PVC Template 정보를 구성합니다. 이때 활용하는 metadata
+  # .name은 pvc 구성과 달리 직접 volumeMount의 이름으로 지정합니다. 이외 spec은
+  # PVC와 동일하게 구성합니다.
+  volumeClaimTemplates:
+  - metadata:
+      name: prom-data-vol
+      namespace: monitoring
+    spec:
+      storageClassName: csi-rbd-sc
+      volumeMode: Filesystem
+      accessModes: 
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Gi
