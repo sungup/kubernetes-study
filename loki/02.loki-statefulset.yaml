@@ -11,8 +11,12 @@ spec:
   selector:
     app: loki-server
   ports:
-  - port: 3100
+  - name: loki-http
+    port: 3100
     targetPort: loki-http
+  - name: gossip-ring
+    port: 7946
+    targetPort: gossip-ring
 
 ---
 
@@ -23,7 +27,7 @@ metadata:
   namespace: monitoring
 spec:
   serviceName: loki
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: loki-server
@@ -44,10 +48,22 @@ spec:
         ports:
         - name: loki-http
           containerPort: 3100
+        - name: gossip-ring
+          containerPort: 7946
         securityContext:
           runAsGroup: 0
           runAsNonRoot: false
           runAsUser: 0
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 3100
+          initialDelaySeconds: 30
+          periodSeconds: 30
         volumeMounts:
         - name: loki-conf-vol
           mountPath: /etc/loki

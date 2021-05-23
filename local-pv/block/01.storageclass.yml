@@ -1,0 +1,119 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-model1
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-model2
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: svr1-pv1-model1
+spec:
+  capacity:
+    storage: 4Gi
+  volumeMode: Block
+  accessModes:
+  - ReadWriteOnce
+  # 평가 종료후 다른 평가가 사용가능하도록 Delete Policy 지정
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: sc-model1
+  local:
+    path: /dev/disk/by-partlabel/PV1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - k8s-test-01.sungup.io
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: svr1-pv2-model1
+spec:
+  capacity:
+    storage: 4Gi
+  volumeMode: Block
+  accessModes:
+  - ReadWriteOnce
+  # 평가 종료후 다른 평가가 사용가능하도록 Delete Policy 지정
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: sc-model1
+  local:
+    path: /dev/disk/by-partlabel/PV2
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - k8s-test-01.sungup.io
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: svr1-pv3-model2
+spec:
+  capacity:
+    storage: 4Gi
+  volumeMode: Block
+  accessModes:
+  - ReadWriteOnce
+  # 평가 종료후 다른 평가가 사용가능하도록 Delete Policy 지정
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: sc-model2
+  local:
+    path: /dev/disk/by-partlabel/PV3
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - k8s-test-01.sungup.io
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: svr1-pv4-model2
+spec:
+  capacity:
+    storage: 4Gi
+  volumeMode: Block
+  accessModes:
+  - ReadWriteOnce
+  # 평가 종료후 다른 평가가 사용가능하도록 Delete Policy 지정
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: sc-model2
+  local:
+    path: /dev/disk/by-partlabel/PV4
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - k8s-test-01.sungup.io

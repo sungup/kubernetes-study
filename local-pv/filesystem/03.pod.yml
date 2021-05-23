@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-app-bm1
+  labels:
+    name: test-app-bm1
+spec:
+  containers:
+  - name: test-app-bm1
+    image: busybox
+    command: ['sh', '-c', 'echo "Local Persistent Volume on sc-model1 Mounted in test-app-bm1" > /mnt/sample.txt && sleep 60']
+    resources:
+      limits:
+        memory: "127Mi"
+        cpu: "500m"
+    volumeMounts:
+    - name: sc-model1-vol
+      mountPath: /mnt
+  volumes:
+  - name: sc-model1-vol
+    persistentVolumeClaim:
+      claimName: sc-model1-bm1
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-app-bm2
+  labels:
+    name: test-app-bm2
+spec:
+  containers:
+  - name: test-app-bm2
+    image: busybox
+    command: ['sh', '-c', 'echo "Local Persistent Volume on sc-model1 Mounted in test-app-bm2" > /mnt/sample.txt && sleep 60']
+    resources:
+      limits:
+        memory: "127Mi"
+        cpu: "500m"
+    volumeMounts:
+    - name: sc-model1-vol
+      mountPath: /mnt
+  volumes:
+  - name: sc-model1-vol
+    persistentVolumeClaim:
+      claimName: sc-model1-bm2
